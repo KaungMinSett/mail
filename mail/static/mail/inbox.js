@@ -20,9 +20,35 @@ function compose_email() {
   document.querySelector('#compose-recipients').value = '';
   document.querySelector('#compose-subject').value = '';
   document.querySelector('#compose-body').value = '';
+
+  //send email
+  document.querySelector('#compose-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    fetch('/emails', {
+      method: 'POST',
+      body: JSON.stringify({
+          recipients: document.querySelector('#compose-recipients').value,
+          subject: document.querySelector('#compose-subject').value,
+          body: document.querySelector('#compose-body').value
+      })
+    })
+   
+    .then( () => load_mailbox('sent'));
+
+
+
+
+
+
+    
+    
+   
+  });
+
 }
 
 function load_mailbox(mailbox) {
+
   
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
@@ -30,4 +56,57 @@ function load_mailbox(mailbox) {
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
+  fetch(`/emails/${mailbox}`)
+  .then(response => response.json())
+  .then(emails => {
+    console.log(emails);
+    emails.forEach(email => {
+      const element = document.createElement('div');
+      element.style.backgroundColor = email.read ? 'lightgrey' : 'white';
+      element.innerHTML = `<div class="card">
+      <div class="card-body">
+        <h5 class="card-title">${email.subject}</h5>
+        <h6 class="card-subtitle mb-2 text-muted">From: ${email.sender}</h6>
+        <p class="card-text">${email.body}</p>
+        <p class="card-text">${email.timestamp}</p>
+      </div>
+      
+    </div>
+    <br>
+`;
+    element.addEventListener('click', () => {
+      fetch(`/emails/${email.id}`)
+      .then(response => response.json())
+      .then(email => {
+
+
+        const element = document.createElement('div');
+
+        element.innerHTML = `<div class="card">
+        <div class="card-body">
+          <h5 class="card-title">${email.subject}</h5>
+          <h6 class="card-subtitle mb-2 text-muted">From: ${email.sender}</h6>
+          <h6 class="card-subtitle mb-2 text-muted">To: ${email.recipients}</h6>
+          <p class="card-text">${email.body}</p>
+          <p class="card-text">Sent: ${email.timestamp}</p>
+        </div>
+      </div>`;
+      document.querySelector('#emails-view').innerHTML = '';
+      document.querySelector('#emails-view').append(element);
+      });
+    });
+
+    // mark as read by clicking email    
+    element.addEventListener('click', () => {
+      fetch(`/emails/${email.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          read: true
+        })
+      })
+    })
+    document.querySelector('#emails-view').append(element); // add to emails-view div
+    });
+  })
+  
 }

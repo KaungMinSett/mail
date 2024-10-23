@@ -1,4 +1,4 @@
-- Download the distribution code from https://github.com/KaungMinSett/mail and unzip it.
+- Download the distribution code and unzip it.
 - In your terminal, cd into the mail directory.
 - Run python manage.py makemigrations mail to make migrations for the mail app.
 - Run python manage.py migrate to apply migrations to your database.
