@@ -62,11 +62,14 @@ function load_mailbox(mailbox) {
     console.log(emails);
     emails.forEach(email => {
       const element = document.createElement('div');
-      element.style.backgroundColor = email.read ? 'lightgrey' : 'white';
-      element.innerHTML = `<div class="card">
-      <div class="card-body">
-        <h5 class="card-title">${email.subject}</h5>
-        <h6 class="card-subtitle mb-2 text-muted">From: ${email.sender}</h6>
+    //  element.style.backgroundColor = email.read ? 'lightgrey' : 'white';
+    // style=" ${email.read ? 'background-color:lightgrey;': 'background-color:white;'}"
+      
+      element.innerHTML = `<div class="card " style=" ${email.read ? 'background-color:lightgrey;': 'background-color:white;'}">
+      <div class="card-body >
+        <h5 class="card-title">Subject:${email.subject}</h5>
+        <h6 class="card-subtitle  text-muted">From: ${email.sender}</h6>
+        <hr>
         <p class="card-text">${email.body}</p>
         <p class="card-text">${email.timestamp}</p>
       </div>
@@ -74,6 +77,8 @@ function load_mailbox(mailbox) {
     </div>
     <br>
 `;
+ 
+    // view email when clicking an email
     element.addEventListener('click', () => {
       fetch(`/emails/${email.id}`)
       .then(response => response.json())
@@ -84,7 +89,7 @@ function load_mailbox(mailbox) {
 
         element.innerHTML = `<div class="card">
         <div class="card-body">
-          <h5 class="card-title">${email.subject}</h5>
+          <h5 class="card-title">Subject: ${email.subject}</h5>
           <h6 class="card-subtitle mb-2 text-muted">From: ${email.sender}</h6>
           <h6 class="card-subtitle mb-2 text-muted">To: ${email.recipients}</h6>
           <p class="card-text">${email.body}</p>
@@ -92,11 +97,12 @@ function load_mailbox(mailbox) {
         </div>
       </div>`;
       document.querySelector('#emails-view').innerHTML = '';
+
       document.querySelector('#emails-view').append(element);
       });
     });
 
-    // mark as read by clicking email    
+    // mark as read when clicking an email    
     element.addEventListener('click', () => {
       fetch(`/emails/${email.id}`, {
         method: 'PUT',
