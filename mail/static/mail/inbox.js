@@ -50,6 +50,8 @@ function load_mailbox(mailbox) {
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
+
+  // Fetch the emails
   fetch(`/emails/${mailbox}`)
     .then(response => response.json())
     .then(emails => {
@@ -72,6 +74,33 @@ function load_mailbox(mailbox) {
     </div>
     <br>`;
 
+      // view email when clicking an email
+      element.addEventListener('click', () => {
+        document.querySelector('#emails-view').style.display = 'none';
+        document.querySelector('#email-view').style.display = 'block';
+        fetch(`/emails/${email.id}`)
+          .then(response => response.json())
+          .then(email => {
+
+
+            const element = document.createElement('div');
+
+            element.innerHTML = `<div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Subject: ${email.subject}</h5>
+        <h6 class="card-subtitle mb-2 text-muted">From: ${email.sender}</h6>
+        <h6 class="card-subtitle mb-2 text-muted">To: ${email.recipients}</h6>
+        <p class="card-text">${email.body}</p>
+        <p class="card-text">Sent: ${email.timestamp}</p>
+       
+      </div>
+    </div>`;
+            document.querySelector('#email-view').innerHTML = '';
+
+            document.querySelector('#email-view').append(element);
+          });
+      });
+
 
 
         let showArchive = true;
@@ -92,7 +121,7 @@ function load_mailbox(mailbox) {
           archiveButton.className = "btn btn-primary";
           archiveButton.innerText = email.archived ? "Unarchive" : "Archive";
 
-          // Add event listener to the button
+          // mark email as archived or unarchived
           archiveButton.addEventListener('click', (event) => {
             event.stopPropagation(); // Prevent the click from bubbling up to the email element
             fetch(`/emails/${email.id}`, {
@@ -109,33 +138,7 @@ function load_mailbox(mailbox) {
         }
 
 
-        // view email when clicking an email
-        element.addEventListener('click', () => {
-          document.querySelector('#emails-view').style.display = 'none';
-          document.querySelector('#email-view').style.display = 'block';
-          fetch(`/emails/${email.id}`)
-            .then(response => response.json())
-            .then(email => {
-
-
-              const element = document.createElement('div');
-
-              element.innerHTML = `<div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Subject: ${email.subject}</h5>
-          <h6 class="card-subtitle mb-2 text-muted">From: ${email.sender}</h6>
-          <h6 class="card-subtitle mb-2 text-muted">To: ${email.recipients}</h6>
-          <p class="card-text">${email.body}</p>
-          <p class="card-text">Sent: ${email.timestamp}</p>
-         
-        </div>
-      </div>`;
-              document.querySelector('#email-view').innerHTML = '';
-
-              document.querySelector('#email-view').append(element);
-            });
-        });
-
+    
         // mark as read when clicking an email    
         element.addEventListener('click', () => {
           fetch(`/emails/${email.id}`, {
