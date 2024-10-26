@@ -3,3 +3,7 @@ textarea {
     
 }
 
+.card.read {
+  background-color: lightgrey;
+}
+
