@@ -14,6 +14,7 @@ function compose_email() {
 
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#email-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
 
   // Clear out composition fields
@@ -58,21 +59,7 @@ function load_mailbox(mailbox) {
       console.log(emails);
       emails.forEach(email => {
 
-        const element = document.createElement('div');
-
-
-        element.innerHTML = `<div class="card " >
-      <div class="card-body >
-        <h5 class="card-title">Subject:${email.subject}</h5>
-        <h6 class="card-subtitle  text-muted">From: ${email.sender}</h6>
-        <hr>
-        <p class="card-text">${email.body}</p>
-        <p class="card-text">${email.timestamp}</p>
-      
-      </div>
-      
-    </div>
-    <br>`;
+        const element = createEmailCard(email);
 
       // view email when clicking an email
       element.addEventListener('click', () => {
@@ -83,18 +70,9 @@ function load_mailbox(mailbox) {
           .then(email => {
 
 
-            const element = document.createElement('div');
+            const element = createEmailCard(email, true, true);
 
-            element.innerHTML = `<div class="card">
-      <div class="card-body">
-        <h5 class="card-title">Subject: ${email.subject}</h5>
-        <h6 class="card-subtitle mb-2 text-muted">From: ${email.sender}</h6>
-        <h6 class="card-subtitle mb-2 text-muted">To: ${email.recipients}</h6>
-        <p class="card-text">${email.body}</p>
-        <p class="card-text">Sent: ${email.timestamp}</p>
-       
-      </div>
-    </div>`;
+   
             document.querySelector('#email-view').innerHTML = '';
 
             document.querySelector('#email-view').append(element);
@@ -115,6 +93,15 @@ function load_mailbox(mailbox) {
           element.querySelector('.card').classList.add('read'); // set background color to grey
 
         }
+          // mark as read when clicking an email    
+          element.addEventListener('click', () => {
+            fetch(`/emails/${email.id}`, {
+              method: 'PUT',
+              body: JSON.stringify({
+                read: true
+              })
+            })
+          })
 
         if (showArchive) {
           const archiveButton = document.createElement('button');
@@ -139,18 +126,30 @@ function load_mailbox(mailbox) {
 
 
     
-        // mark as read when clicking an email    
-        element.addEventListener('click', () => {
-          fetch(`/emails/${email.id}`, {
-            method: 'PUT',
-            body: JSON.stringify({
-              read: true
-            })
-          })
-        })
+      
         document.querySelector('#email-view').style.display = 'none';
         document.querySelector('#emails-view').append(element); // add to emails-view div
       });
     })
 
 } 
+
+function createEmailCard(email, showRecipients = false, showBody = false) {
+  const element = document.createElement('div');
+
+
+  element.innerHTML = `<div class="card">
+      <div class="card-body">
+          <h5 class="card-title">Subject: ${email.subject}</h5>
+          <h6 class="card-subtitle mb-2 text-muted">From: ${email.sender}</h6>
+          ${showRecipients ? `<h6 class="card-subtitle mb-2 text-muted">To: ${email.recipients}</h6>` : ''}
+          <hr>
+          ${showBody ? `<p class="card-text">${email.body}</p>` : ''}
+          <p class="card-text">Sent: ${email.timestamp}</p>
+      </div>
+      </div>
+      <br>
+      `;
+
+  return element;
+}
