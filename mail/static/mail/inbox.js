@@ -25,17 +25,7 @@ function compose_email() {
   //send email
   document.querySelector('#compose-form').addEventListener('submit', (event) => {
     event.preventDefault();
-    fetch('/emails', {
-      method: 'POST',
-      body: JSON.stringify({
-        recipients: document.querySelector('#compose-recipients').value,
-        subject: document.querySelector('#compose-subject').value,
-        body: document.querySelector('#compose-body').value
-      })
-    })
-
-      .then(() => load_mailbox('sent'));
-
+    sendEmail();
 
 
   });
@@ -48,6 +38,7 @@ function load_mailbox(mailbox) {
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
+  document.querySelector('#email-view').style.display = 'none';
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
@@ -59,10 +50,10 @@ function load_mailbox(mailbox) {
       console.log(emails);
       emails.forEach(email => {
 
-        const element = createEmailCard(email);
+        const emailCard = createEmailCard(email);
 
       // view email when clicking an email
-      element.addEventListener('click', () => {
+      emailCard.addEventListener('click', () => {
         document.querySelector('#emails-view').style.display = 'none';
         document.querySelector('#email-view').style.display = 'block';
         fetch(`/emails/${email.id}`)
@@ -70,12 +61,12 @@ function load_mailbox(mailbox) {
           .then(email => {
 
 
-            const element = createEmailCard(email, true, true);
+            const emailDetailCard = createEmailCard(email, true, true, true);
 
    
             document.querySelector('#email-view').innerHTML = '';
 
-            document.querySelector('#email-view').append(element);
+            document.querySelector('#email-view').append(emailDetailCard);
           });
       });
 
@@ -90,11 +81,11 @@ function load_mailbox(mailbox) {
         }
 
         if (readStatus) {
-          element.querySelector('.card').classList.add('read'); // set background color to grey
+          emailCard.querySelector('.card').classList.add('read'); // set background color to grey
 
         }
           // mark as read when clicking an email    
-          element.addEventListener('click', () => {
+          emailCard.addEventListener('click', () => {
             fetch(`/emails/${email.id}`, {
               method: 'PUT',
               body: JSON.stringify({
@@ -121,20 +112,38 @@ function load_mailbox(mailbox) {
           });
 
           // Append the button to the email element
-          element.querySelector('.card-body').append(archiveButton);
+          emailCard.querySelector('.card-body').append(archiveButton);
         }
 
 
     
       
         document.querySelector('#email-view').style.display = 'none';
-        document.querySelector('#emails-view').append(element); // add to emails-view div
+        document.querySelector('#emails-view').append(emailCard); // add to emails-view div
       });
     })
 
 } 
 
-function createEmailCard(email, showRecipients = false, showBody = false) {
+function sendEmail() {
+  fetch('/emails', {
+    method: 'POST',
+    body: JSON.stringify({
+      recipients: document.querySelector('#compose-recipients').value,
+      subject: document.querySelector('#compose-subject').value,
+      body: document.querySelector('#compose-body').value
+    })
+  })
+    .then(response => response.json())
+    .then(result => {
+      console.log(result);
+    })
+    .then(() => load_mailbox('sent'));
+}
+
+// create email card
+
+function createEmailCard(email, showRecipients = false, showBody = false, showReply = false) {
   const element = document.createElement('div');
 
 
@@ -146,10 +155,21 @@ function createEmailCard(email, showRecipients = false, showBody = false) {
           <hr>
           ${showBody ? `<p class="card-text">${email.body}</p>` : ''}
           <p class="card-text">Sent: ${email.timestamp}</p>
+          ${showReply ? `<button class="btn btn-primary reply-button">Reply</button>` : ''}
       </div>
-      </div>
-      <br>
+    </div>
+    <br>
       `;
+
+    // if(showReply) {
+    //   element.querySelector('.reply-button').addEventListener('click', () => {
+    //     compose_email();
+    //     document.querySelector('#compose-recipients').value = email.sender;
+    //     document.querySelector('#compose-subject').value = `Re: ${email.subject}`;
+    //     document.querySelector('#compose-body').value = `On ${email.timestamp} ${email.sender} wrote: ${email.body}`;
+    //   });
+
+    // }
 
   return element;
 }
