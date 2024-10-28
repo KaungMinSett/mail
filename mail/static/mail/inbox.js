@@ -6,6 +6,12 @@ document.addEventListener('DOMContentLoaded', function () {
   document.querySelector('#archived').addEventListener('click', () => load_mailbox('archive'));
   document.querySelector('#compose').addEventListener('click', compose_email);
 
+  // Set up the form submission event listener only once
+  document.querySelector('#compose-form').addEventListener('submit', (event) => {
+    event.preventDefault(); // Prevent the default form submission
+    sendEmail(); // Call the sendEmail function
+  });
+
   // By default, load the inbox
   load_mailbox('inbox');
 });
@@ -22,13 +28,8 @@ function compose_email() {
   document.querySelector('#compose-subject').value = '';
   document.querySelector('#compose-body').value = '';
 
-  //send email
-  document.querySelector('#compose-form').addEventListener('submit', (event) => {
-    event.preventDefault();
-    sendEmail();
 
 
-  });
 
 }
 
@@ -62,6 +63,10 @@ function load_mailbox(mailbox) {
 
 
             const emailDetailCard = createEmailCard(email, true, true, true);
+
+            emailDetailCard.querySelector('.reply-button').addEventListener('click', () => {
+              replyEmail(email);
+            });
 
    
             document.querySelector('#email-view').innerHTML = '';
@@ -172,4 +177,17 @@ function createEmailCard(email, showRecipients = false, showBody = false, showRe
     // }
 
   return element;
+}
+
+function replyEmail(email) {
+  compose_email();
+  document.querySelector('#compose-recipients').value = email.sender;
+  if (email.subject.startsWith('Re: ')) {
+    document.querySelector('#compose-subject').value = email.subject;
+  }
+  else {
+    document.querySelector('#compose-subject').value = `Re: ${email.subject}`;
+  }
+  
+  document.querySelector('#compose-body').value = `On ${email.timestamp} ${email.sender} wrote: ${email.body}`;
 }
