@@ -6,10 +6,10 @@ document.addEventListener('DOMContentLoaded', function () {
   document.querySelector('#archived').addEventListener('click', () => load_mailbox('archive'));
   document.querySelector('#compose').addEventListener('click', compose_email);
 
-  // Set up the form submission event listener only once
+  // Set up the form submission event listener
   document.querySelector('#compose-form').addEventListener('submit', (event) => {
     event.preventDefault(); // Prevent the default form submission
-    sendEmail(); // Call the sendEmail function
+    sendEmail(); // send email
   });
 
   // By default, load the inbox
@@ -54,26 +54,9 @@ function load_mailbox(mailbox) {
         const emailCard = createEmailCard(email);
 
       // view email when clicking an email
-      emailCard.addEventListener('click', () => {
-        document.querySelector('#emails-view').style.display = 'none';
-        document.querySelector('#email-view').style.display = 'block';
-        fetch(`/emails/${email.id}`)
-          .then(response => response.json())
-          .then(email => {
-
-
-            const emailDetailCard = createEmailCard(email, true, true, true);
-
-            emailDetailCard.querySelector('.reply-button').addEventListener('click', () => {
-              replyEmail(email);
-            });
-
-   
-            document.querySelector('#email-view').innerHTML = '';
-
-            document.querySelector('#email-view').append(emailDetailCard);
-          });
-      });
+        emailCard.addEventListener('click', () => {
+          viewEmail(email);
+        });
 
 
 
@@ -166,17 +149,25 @@ function createEmailCard(email, showRecipients = false, showBody = false, showRe
     <br>
       `;
 
-    // if(showReply) {
-    //   element.querySelector('.reply-button').addEventListener('click', () => {
-    //     compose_email();
-    //     document.querySelector('#compose-recipients').value = email.sender;
-    //     document.querySelector('#compose-subject').value = `Re: ${email.subject}`;
-    //     document.querySelector('#compose-body').value = `On ${email.timestamp} ${email.sender} wrote: ${email.body}`;
-    //   });
 
-    // }
 
   return element;
+}
+
+function viewEmail(email) {
+  document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#email-view').style.display = 'block';
+  fetch(`/emails/${email.id}`)
+    .then(response => response.json())
+    .then(email => {
+      const emailDetailCard = createEmailCard(email, true, true, true);
+      emailDetailCard.querySelector('.reply-button').addEventListener('click', () => {
+        replyEmail(email);
+      });
+
+      document.querySelector('#email-view').innerHTML = '';
+      document.querySelector('#email-view').append(emailDetailCard);
+    });
 }
 
 function replyEmail(email) {
