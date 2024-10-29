@@ -65,7 +65,7 @@ function load_mailbox(mailbox) {
 
         if (mailbox === 'sent') {
           showArchive = false; // Hide the archive button
-          readStatus = false; // Mark all sent emails as unread
+          readStatus = false; // leave sent emails alone
         }
 
         if (readStatus) {
@@ -74,12 +74,7 @@ function load_mailbox(mailbox) {
         }
           // mark as read when clicking an email    
           emailCard.addEventListener('click', () => {
-            fetch(`/emails/${email.id}`, {
-              method: 'PUT',
-              body: JSON.stringify({
-                read: true
-              })
-            })
+            markAsRead(email);
           })
 
         if (showArchive) {
@@ -89,14 +84,9 @@ function load_mailbox(mailbox) {
 
           // mark email as archived or unarchived
           archiveButton.addEventListener('click', (event) => {
-            event.stopPropagation(); // Prevent the click from bubbling up to the email element
-            fetch(`/emails/${email.id}`, {
-              method: 'PUT',
-              body: JSON.stringify({
-                archived: !email.archived
-              })
-            })
-              .then(() => load_mailbox('inbox'));
+            event.stopPropagation(); // Prevent the click from bubbling up to the email element which will mark as read
+            markAsArchive(email);
+             
           });
 
           // Append the button to the email element
@@ -113,6 +103,8 @@ function load_mailbox(mailbox) {
 
 } 
 
+
+// send email
 function sendEmail() {
   fetch('/emails', {
     method: 'POST',
@@ -130,7 +122,6 @@ function sendEmail() {
 }
 
 // create email card
-
 function createEmailCard(email, showRecipients = false, showBody = false, showReply = false) {
   const element = document.createElement('div');
 
@@ -150,10 +141,29 @@ function createEmailCard(email, showRecipients = false, showBody = false, showRe
       `;
 
 
-
   return element;
 }
 
+function markAsRead(email) {
+  fetch(`/emails/${email.id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      read: true
+    })
+  });
+}
+
+function markAsArchive(email) {
+  fetch(`/emails/${email.id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      archived: true
+    })
+  })
+  .then(() => load_mailbox('inbox'));
+}
+
+// view email details
 function viewEmail(email) {
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#email-view').style.display = 'block';
@@ -170,6 +180,7 @@ function viewEmail(email) {
     });
 }
 
+// reply to email
 function replyEmail(email) {
   compose_email();
   document.querySelector('#compose-recipients').value = email.sender;
